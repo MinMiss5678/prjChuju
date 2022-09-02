@@ -1,0 +1,139 @@
+﻿@model prjChuju.ViewModels.ActivityContentViewModel
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}　
+<style>
+    .picture {
+        width: 100%;
+    }
+
+        .picture:hover {
+            opacity: 0.8;
+        }
+
+    .ActivityContent_title {
+        text-align: center;
+        margin-top: 85px;
+        margin-bottom: 100px;
+        font-size: 50px;
+        font-weight: bold;
+        color: #383838;
+    }
+
+    .content {
+        max-width: 990px;
+        margin: 0px auto;
+        margin-bottom: 150px;
+    }
+
+        .content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .content p {
+            font-size: 21px;
+        }
+
+    .wrapper {
+        margin: 0px auto;
+        width: 1220px;
+    }
+
+    .wrapper_news .line {
+        width: 188px;
+        text-align: end;
+        font-size: 25px;
+        color: #706139;
+        border-top: 1px solid #706139;
+        margin-right: 51px;
+        padding-top: 14px;
+    }
+
+    .wrapper .news {
+        width: 880px;
+        margin-bottom: 69px;
+        flex-wrap: wrap;
+    }
+
+    .wrapper_news .box {
+        width: 260px;
+        margin-left: 27px;
+        margin-bottom: 41px;
+    }
+
+    .wrapper_news .textbox {
+        border-right: 0.5px solid #706139;
+        border-bottom: 0.5px solid #706139;
+    }
+
+    .wrapper_news .type {
+        font-weight: bold;
+        color: #706139;
+        padding-top: 10px
+    }
+
+    .wrapper_news .title {
+        font-weight: bold;
+        font-size: 20px;
+        line-height: 29px;
+    }
+
+    .wrapper_news .time {
+        color: #797070;
+        font-size: 11px;
+        line-height: 16px;
+        margin-top: 17px;
+        margin-bottom: 27px;
+    }
+
+    .wrapper_news a {
+        text-decoration: none;
+        color: #383838;
+    }
+</style>
+<div class="ActivityContent_title">
+    @Model.Title
+</div>
+<main>
+    <div class="content">
+        @Html.Raw(@Model.Content)
+    </div>
+</main>
+<extra>
+    <div class="wrapper_news wrapper d-flex">
+        <div class="line">
+            <span>其他活動</span>
+        </div>
+        <div>
+            <div class="news d-flex justify-content-space-between" id="content">
+            </div>
+        </div>
+    </div>
+</extra>
+<script>
+$(function() {
+    $.getJSON("@Url.Content("~/Activity/OtherActivity/")@Model.Id", function(data) {
+        Display(data);
+    });
+     
+    function Display(data) {
+        $.each(data, function(index, value) {
+
+            let show;
+            show = `<div class="box">
+                        <a href="/Activity/Content/${value.id}">
+                            <div class="imgbox">
+                                <img class="picture" src="/${value.thumbnail}" />
+                            </div>
+                            <div class="textbox">
+                                <div class="type">活動快報</div>
+                                <div class="time">${value.startDate} ~ ${value.endDate}</div>
+                            </div>
+                        </a>
+                    </div>`
+            $("#content").append(show);
+        });
+    };
+});
+</script>

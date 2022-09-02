@@ -1,0 +1,61 @@
+﻿#showActivity {
+    display: flex;
+    outline: solid 1px black;
+    color: black;
+    align-items: center;
+    text-decoration: none;
+    padding: 0 10px;
+}
+
+#showActivity:hover {
+    color: black;
+}
+
+.section-one {
+    width: 1800px;
+}
+
+.menu {
+    width: 20%;
+}
+
+#detail {
+    width: 80%;
+}
+
+    #detail header {
+        width: 500px;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+#search-text {
+    width: 200px;
+    height: 30px;
+    resize: none;
+}
+
+#count {
+    align-items: center;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.title {
+    width: 50%;
+}
+
+.picture {
+    width: 10%
+}
+
+img {
+    width: 100%;
+}
+
+td {
+    border: solid 1px black;
+}

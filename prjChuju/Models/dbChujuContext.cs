@@ -18,8 +18,8 @@ namespace prjChuju.Models
 
         public virtual DbSet<AccountInfo> AccountInfos { get; set; } = null!;
         public virtual DbSet<AccountPicture> AccountPictures { get; set; } = null!;
-        public virtual DbSet<ActivityContent> ActivityContents { get; set; } = null!;
-        public virtual DbSet<ActivityOutline> ActivityOutlines { get; set; } = null!;
+        public virtual DbSet<Activity> Activities { get; set; } = null!;
+        public virtual DbSet<ActivityImage> ActivityImages { get; set; } = null!;
         public virtual DbSet<ArticleClass> ArticleClasses { get; set; } = null!;
         public virtual DbSet<ArticleContent> ArticleContents { get; set; } = null!;
         public virtual DbSet<ArticleOutline> ArticleOutlines { get; set; } = null!;
@@ -118,41 +118,40 @@ namespace prjChuju.Models
                 entity.Property(e => e.Uploader).HasColumnName("uploader");
             });
 
-            modelBuilder.Entity<ActivityContent>(entity =>
+            modelBuilder.Entity<Activity>(entity =>
             {
-                entity.HasKey(e => e.ActivityId)
-                    .HasName("PK__Activity__45F4A791F0E79672");
-
-                entity.ToTable("ActivityContent");
-
-                entity.Property(e => e.ActivityId).ValueGeneratedNever();
+                entity.ToTable("Activity");
 
                 entity.Property(e => e.Content).HasColumnName("content");
-
-                entity.Property(e => e.Title).HasColumnName("title");
-            });
-
-            modelBuilder.Entity<ActivityOutline>(entity =>
-            {
-                entity.ToTable("ActivityOutline");
-
-                entity.Property(e => e.Id).ValueGeneratedOnAdd();
 
                 entity.Property(e => e.EndDate)
                     .HasColumnType("date")
                     .HasColumnName("endDate");
 
-                entity.Property(e => e.Picture).HasColumnName("picture");
+                entity.Property(e => e.ModifiedDate)
+                    .HasColumnType("date")
+                    .HasColumnName("modifiedDate");
 
                 entity.Property(e => e.StartDate)
                     .HasColumnType("date")
                     .HasColumnName("startDate");
 
-                entity.HasOne(d => d.IdNavigation)
-                    .WithOne(p => p.ActivityOutline)
-                    .HasForeignKey<ActivityOutline>(d => d.Id)
+                entity.Property(e => e.Thumbnail).HasColumnName("thumbnail");
+
+                entity.Property(e => e.Title).HasColumnName("title");
+            });
+
+            modelBuilder.Entity<ActivityImage>(entity =>
+            {
+                entity.ToTable("ActivityImage");
+
+                entity.Property(e => e.Image).HasColumnName("image");
+
+                entity.HasOne(d => d.Activity)
+                    .WithMany(p => p.ActivityImages)
+                    .HasForeignKey(d => d.ActivityId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ActivityOutline_ActivityContent");
+                    .HasConstraintName("FK_ActivityImage_ActivityOutline");
             });
 
             modelBuilder.Entity<ArticleClass>(entity =>

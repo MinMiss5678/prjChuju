@@ -1,0 +1,310 @@
+﻿<head>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link id="cssStyle" rel="stylesheet" href="" />
+	<script src="~/ckeditor5-34.2.0-c7r9rpf8k3wn/build/ckeditor.js"></script>
+@*	<script src="~/ckfinder/ckfinder.js"></script>*@
+</head>
+
+<style>
+	header {
+		text-align: center;
+	}
+
+	
+
+	li {
+		cursor: pointer;
+	}
+
+	.wrapper_header {
+		margin-top: 50px;
+		margin-bottom: 10px;
+	}
+
+	#editor {
+		height: 500px;
+		margin-bottom: 10px;
+	}
+
+
+	.ck.editor__editable[role='textbox'],
+	.ck.ck-editor__editable[role='textbox'],
+	/* Inline & Balloon build. */
+	.ck.editor[role='textbox'] {
+		padding:0px 224px;
+		width: 100%;
+		font-size:21px;
+		background: #fff;
+		min-height: var(--ck-sample-editor-min-height);
+	}
+</style>
+
+<body>
+	<header>
+		<h1>後台管理</h1>
+	</header>
+	<section class="section-one d-flex">
+		<ul class="menu">
+			<li id="Activity">活動管理</li>
+		</ul>
+		<div id="detail">
+		</div>
+	</section>
+</body>
+
+
+<script>
+	$(function() {
+		$("#Activity").click(function() {
+			$("#cssStyle").attr("href", "/css/ActivityManage.css")
+
+			LoadData();
+		});
+	});
+
+	function LoadData() {
+		$("#detail").empty();
+		$.getJSON("@Url.Content("~/api/ActivityManage")", function(data) {
+            $("#detail").append
+                (
+                    `<header class="d-flex">
+														<input id="search-text" placeholder="輸入標題查詢">
+														<div class="d-flex" id="count"></div>
+														<a id="showActivity" href="/Activity/Index">活動顯示</a>
+														<button id="create">新增活動</button>
+												</header>
+													<div>
+														<table>
+															<thead>
+																<tr>
+																<th class="picture">預覽</th>
+																<th class="title">標題</th>
+																<th>開始日期</th>
+																<th>結束日期</th>
+																<th>修改日期</th>
+																<th></th>
+																</tr>
+																<tbody id="content"></tbody>
+															</thead>
+														</table>
+														</div>`
+                );
+				$.each(data, function(index, value) {
+					Display(value);
+				});
+				$("#count").text(`共${data.length}筆`);
+
+				$("#search-text").bind("input propertychange", function() {
+					$("#content").empty();
+					let count = 0;
+					let searchText = this.value;
+					$.each(data, function(index, value) {
+						if (value.title.toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
+							count++;
+							Display(value);
+						}
+					});
+
+					$("#count").text(`共${count}筆`);
+				});
+		})
+        .then((res) => { 
+				Delete();
+		})
+		.then((res) => {
+				Edit();
+		})
+		.then((res) => {
+				CreateDetail();
+        });
+	}
+
+	function Display(value) {
+		$("#content").append
+			(
+				`<tr>
+					<td>
+						<img src="/${value.thumbnail}" />
+					</td>
+					<td>${value.title}</td>
+					<td>${value.startDate}</td>
+					<td>${value.endDate}</td>
+					<td>${value.modifiedDate}</td>
+					<td>
+					<button class="edit" value=${value.id}>編輯</button>
+					<button class="delete" value=${value.id}>刪除</button>
+					</td>
+				</tr>`
+			)
+	}
+
+	function Delete() {
+		$(".delete").on("click", function() {
+			let r = confirm("確定要刪除嗎?");
+
+			if (r == true) {
+				let apiUrl = `api/ActivityManage/${this.value}`;
+
+				$.ajax({
+					url: apiUrl,
+					method: "Delete",
+					contentType: "application/json",
+					success: function(data) {
+						if (data != 0) {
+							alert("刪除成功");
+						}
+
+						else {
+							alert("刪除失敗");
+						}
+
+						LoadData();
+					}
+				});
+			}
+		});
+	}
+</script>
+<script>
+	function CreateDetail() {
+		$("#create").on("click", function() {
+			$("#detail").empty();
+			$("#detail").append
+				(
+					`
+					<form id="postForm">
+					<div class="wrapper_header">
+						標題：<input name="title" />
+						開始日期：<input name="startDate" placeholder="1990-01-01" />
+						結束日期：<input name="endDate" placeholder="1990-01-01" />
+						預覽圖片: <img class="picture" id="preview" /> <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
+					</div>
+					<div class="document-editor__toolbar">
+					</div>
+					<div id="editor">
+					</div>
+					<button id="submit">送出</button>
+					</form>
+					`
+				);
+            CkEditor();
+            Preview();
+
+            $("#submit").on("click", function(e) {
+                e.preventDefault();
+                
+                let data = new FormData($("#postForm")[0]);
+                let content = editor.getData();
+                data.append("content", content);
+               
+                $.ajax({
+					url: "/api/ActivityManage",
+					method: "Post",
+					data: data,
+					processData: false,
+					contentType: false,
+                    success: function(data) {
+                     	if (data != 0) {
+							alert("新增成功");
+						}
+
+						else {
+							alert("新增失敗");
+						}
+
+						LoadData();
+					}
+                });
+            });
+		});
+	}
+
+function Edit() {
+    $(".edit").on("click", function() {
+        let apiUrl = `/api/ActivityManage/${this.value}`;
+        $.getJSON(apiUrl, function(data) {
+			$("#detail").empty();
+			$("#detail").append
+				(
+					`
+					<form id="postForm">
+					<div class="wrapper_header">
+						標題：<input name="title" value="${data.title}" />
+						開始日期：<input name="startDate" placeholder="1990-01-01" value="${data.startDate}" />
+						結束日期：<input name="endDate" placeholder="1990-01-01" value="${data.endDate}" />
+						預覽圖片:<img class="picture" id="preview" src="/${data.thumbnail}" /> <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
+					</div>
+					<div class="document-editor__toolbar">
+					</div>
+					<div id="editor">
+					${data.content}
+					</div>
+					<button id="submit">送出</button>
+					</form>
+					`
+				);
+            CkEditor();
+            Preview();
+            Update(data.id);
+			});
+    });
+}
+
+function CkEditor() {
+		DecoupledDocumentEditor
+				.create(document.querySelector('#editor'), {
+					simpleUpload: {
+						uploadUrl: "/api/ActivityManage/ImageUpload"
+					}
+				})
+				.then(editor => {
+					window.editor = editor;
+					document.querySelector('.document-editor__toolbar').appendChild(editor.ui.view.toolbar.element);
+				})
+				.catch(error => {
+					console.error(error);
+				});
+}
+
+function Preview() {
+    $("#imageFile").change(function() {
+        if (this.files && this.files[0]) {
+            let reader = new FileReader();
+            reader.onload = function(e) {
+                $("#preview").attr("src", e.target.result)
+            }
+            reader.readAsDataURL(this.files[0])
+        }
+    });
+}
+
+function Update(id) {
+		 $("#submit").on("click", function(e) {
+                e.preventDefault();
+                
+                let data = new FormData($("#postForm")[0]);
+                let content = editor.getData();
+                data.append("content", content);
+
+                $.ajax({
+					url: `/api/ActivityManage/${id}`,
+					method: "Put",
+					data: data,
+					processData: false,
+					contentType: false,
+                    success: function(data) {
+                     	if (data != 0) {
+							alert("修改成功");
+						}
+
+						else {
+							alert("修改失敗");
+						}
+
+						LoadData();
+					}
+                });
+            });
+}
+</script>

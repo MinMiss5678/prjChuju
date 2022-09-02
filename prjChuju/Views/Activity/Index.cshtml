@@ -1,209 +1,340 @@
-﻿@model prjChuju.Controllers.ActivityController.PaginatedList<prjChuju.Models.ActivityOutline>
+﻿@model IQueryable<prjChuju.ViewModels.ActivityViewModel>
 @{
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }　　
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <style>
-		/*  * {
-					outline: 1px solid red;
-				}*/
-
-				a.disabled {
-	  pointer-events: none;
-	  cursor: default;
+	button:focus {
+		outline: none;
 	}
-		main {
-			border-bottom: 3px solid #706139;
-		}
 
-		.tag-group {
-			width: 595px;
-		}
+	button.disabled {
+		pointer-events: none;
+		cursor: default;
+	}
 
-		.justify-content-space-between {
-			justify-content: space-between
-		}
+	main {
+		border-bottom: 3px solid #706139;
+	}
 
-		.tag {
-			font-size: 22px;
-			color: #FFFFFF;
-			line-height: 90px;
-		}
+	.tag-group {
+		width: 595px;
+	}
 
-			.tag:hover {
-				color: black;
-			}
+	.justify-content-space-between {
+		justify-content: space-between
+	}
 
-		.sticky {
-			background: #706139;
-			padding-right: 270px;
-			margin-bottom: 35px;
-		}
+	.tag {
+		font-size: 22px;
+		background: transparent;
+		color: #FFFFFF;
+		line-height: 90px;
+		cursor: pointer;
+		border: none;
+	}
 
-		.Activity-title {
-			font-size: 50px;
-			color: #383838;
-			font-weight: bold;
-			margin-left: 170px;
-			margin-bottom: 49px;
-		}
-
-		.container {
-			width: 880px;
-			margin: 0 auto;
-			margin-bottom: 44px;
-		}
-
-		.row {
-			display: flex;
-			flex-wrap: wrap;
-		}
-
-		.box {
-			width: 47.5%;
-			margin-bottom: 49px;
-		}
-
-		.picture {
-			width: 100%;
-		}
-
-			.picture:hover {
-				opacity: 0.8;
-			}
-
-		.information {
-			background: #E7E7E7;
-			padding: 13px 10px;
-			border: 1px solid #A6A6A6;
-			border-top: 0px;
-		}
-
-		.time {
-			color: #706139;
-			font-weight: 400;
-		}
-
-			.time img {
-				width: 20px;
-				margin-right: 2px;
-			}
-
-		.status-tag-now {
-			font-size: 15px;
-			color: #706139;
-			font-weight: 500;
-			outline: 1px solid #706139;
-			padding: 0 4px;
-		}
-
-		.status-tag-end {
-			font-size: 15px;
-			color: #949494;
-			font-weight: 500;
-			outline: 1px solid #949494;
-			padding: 0 4px;
-		}
-
-		.page {
-			border-radius: 30px;
-			border: 2px solid #706139;
-			color: #706139;
-			width: 35px;
-			height: 35px;
-			font-size: 20px;
-			text-align: center;
-			margin-right: 11px;
-			margin-bottom: 53px;
-			background-color: #FFFFFF;
-		}
-
-			.page:hover {
-				color: #706139;
-			}
-
-		.page-select {
-			border: 2px solid black;
+		.tag:hover {
 			color: black;
 		}
+
+	.sticky {
+		background: #706139;
+		padding-right: 270px;
+		margin-bottom: 35px;
+	}
+
+	.Activity-title {
+		font-size: 50px;
+		color: #383838;
+		font-weight: bold;
+		margin-left: 170px;
+		margin-bottom: 49px;
+	}
+
+	.container {
+		width: 880px;
+		margin: 0 auto;
+		margin-bottom: 44px;
+	}
+
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	.box {
+		width: 47.5%;
+		margin-bottom: 49px;
+	}
+
+	.picture {
+		width: 100%;
+	}
+
+		.picture:hover {
+			opacity: 0.8;
+		}
+
+	.information {
+		background: #E7E7E7;
+		padding: 13px 10px;
+		border: 1px solid #A6A6A6;
+		border-top: 0px;
+	}
+
+	.time {
+		color: #706139;
+		font-weight: 400;
+	}
+
+		.time img {
+			width: 20px;
+			margin-right: 2px;
+		}
+
+	.status-tag-now {
+		font-size: 15px;
+		color: #706139;
+		font-weight: 500;
+		outline: 1px solid #706139;
+		padding: 0 4px;
+	}
+
+	.status-tag-end {
+		font-size: 15px;
+		color: #949494;
+		font-weight: 500;
+		outline: 1px solid #949494;
+		padding: 0 4px;
+	}
+
+	.page {
+		border-radius: 30px;
+		border: 2px solid #706139;
+		color: #706139;
+		width: 35px;
+		height: 35px;
+		font-size: 20px;
+		margin-right: 11px;
+		margin-bottom: 53px;
+		background-color: #FFFFFF;
+		cursor: pointer;
+	}
+
+	#select-page {
+		border: 2px solid black;
+		color: black;
+	}
 </style>
 
 <main>
 	<div class="d-flex justify-content-end sticky">
 		<div class="d-flex tag-group justify-content-space-between">
-			<div class="swiper"><a href="~/ActivityOutline/全部活動" class="tag text-decoration-none">全部活動</a></div>
-			<div class="swiper"><a href="~/ActivityOutline/即將開始" class="tag text-decoration-none">即將開始</a></div>
-			<div class="swiper"><a href="~/ActivityOutline/執行中" class="tag text-decoration-none">執行中</a></div>
-			<div class="swiper"><a href="~/ActivityOutline/已結束" class="tag text-decoration-none">已結束</a></div>
+			<div class="swiper"><button class="tag text-decoration-none">全部活動</button></div>
+			<div class="swiper"><button class="tag text-decoration-none">即將開始</button></div>
+			<div class="swiper"><button class="tag text-decoration-none">執行中</button></div>
+			<div class="swiper"><button class="tag text-decoration-none">已結束</button></div>
 		</div>
 	</div>
-	<p>
-		<a href="~/ActivityEditor">新增活動</a>
-	</p>
 	<div class="Activity-title">活動總覽</div>
 	<div class="container">
-		<div class="row justify-content-space-between">
+		<div class="row justify-content-space-between" id="content">
 			@{
+				string tag = "";
 				foreach (var item in Model)
 				{
-					string tag;
-					if (DateTime.Now.Date >= item.StartDate && DateTime.Now.Date <= item.EndDate)
-					{
-						tag = "活動進行中";
-									<script>
-										$(function() {
-											$(".status_@item.Id").addClass("status-tag-now");
-										});
-									</script>
-					}
-
-					else
+					if (item.Tag == "已結束")
 					{
 						tag = "活動已結束";
-									<script>
-										$(function() {
-											$(".status_@item.Id").addClass("status-tag-end");
-										});
-									</script>
+
+												<script>
+													$(function() {
+														$(".status_@item.Id").addClass("status-tag-end");
+													});
+												</script>
 					}
-								<div class="box">
-									<a href="~/ActivityContent/@item.Id">
-										<div class="imgbox">
-											<img class="picture" src="~/@item.Picture" />
-										</div>
-									</a>
-									<div id="abc" class="information d-flex justify-content-space-between">
-										<div class="time d-flex align-items-center">
-											<img src="~/images/ActivityNews/clock.png" />@item.StartDate.ToString("yyyy-MM-dd") ~ @item.EndDate.ToString("yyyy-MM-dd")
-										</div>
-										<div class="status_@item.Id">@tag</div>
-									</div>
-								</div>
+
+					else if (item.Tag == "執行中")
+					{
+						tag = "活動進行中";
+
+												<script>
+													$(function() {
+														$(".status_@item.Id").addClass("status-tag-now");
+													});
+												</script>
+					}
+
+					else if (item.Tag == "即將開始")
+					{
+						tag = "活動尚未開始";
+
+												<script>
+													$(function() {
+														$(".status_@item.Id").addClass("status-tag-now");
+													});
+												</script>
+					}
+
+											<div class="box">
+												<a href="~/Activity/Content/@item.Id">
+													<div class="imgbox">
+														<img class="picture" src="~/@item.Thumbnail" />
+													</div>
+												</a>
+												<div class="information d-flex justify-content-space-between">
+													<div class="time d-flex align-items-center">
+														<img src="~/images/ActivityNews/clock.png" />@item.StartDate ~ @item.EndDate
+													</div>
+													<div class="status_@item.Id">@tag</div>
+												</div>
+											</div>
 				}
 			}
 		</div>
 	</div>
 
-	@{
-		var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-		var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-	}
-
 	<div class="page-list d-flex justify-content-center">
-		<a class="page one text-decoration-none" asp-action="Index" asp-route-pageIndex="1">1</a>
-		<a class="page previous text-decoration-none @prevDisabled" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex - 1)"><</a>
-		<a class="page page-select text-decoration-none">@Model.PageIndex</a>
-		<a class="page next text-decoration-none @nextDisabled" asp-action="Index" asp-route-pageIndex="@(Model.PageIndex + 1)">></a>
-		<a class="page last text-decoration-none" asp-action="Index" asp-route-pageIndex="@Model.TotalPage">@Model.TotalPage</a>
+		<button class="d-flex justify-content-center page text-decoration-none" id="one-page">1</button>
+		<button class="d-flex justify-content-center page text-decoration-none" id="previous"><</button>
+		<button class="d-flex justify-content-center page text-decoration-none" id="select-page">1</button>
+		<button class="d-flex justify-content-center page text-decoration-none" id="next">></button>
+		<button class="d-flex justify-content-center page text-decoration-none" id="last-page">1</button>
 	</div>
-
-	<script>
-		$.ajax({
-			method: "get"
-            url: "/Activity/Index/@(Model.PageIndex)"
-			success: function(data) {
-				alert(data)
-			}
-		})
-	</script>
 </main>
+
+<script>
+$(function() {
+    $.getJSON("@Url.Content("~/Activity/ListActivity")", function(data) {
+        let pageIndex = 1;
+        let pageSize = 4;
+        let totalPage = Math.ceil(data.length / pageSize);
+        let newData = data;
+        SetButton(pageIndex, totalPage);
+
+        $("#one-page").on("click", function() {
+            pageIndex = 1;
+            SetButton(pageIndex, totalPage);
+            Display(newData, pageIndex, pageSize);
+        });
+
+        $("#last-page").on("click", function() {
+            pageIndex = totalPage;
+            SetButton(pageIndex, totalPage);
+            Display(newData, pageIndex, pageSize);
+        })
+
+        $("#previous").on("click", function() {
+            pageIndex -= 1
+            SetButton(pageIndex, totalPage)
+            Display(newData, pageIndex, pageSize)
+        });
+
+
+        $("#next").on("click", function() {
+            pageIndex += 1
+
+            SetButton(pageIndex, totalPage);
+            Display(newData, pageIndex, pageSize);
+        });
+
+        $(".tag").on("click", function() {
+            pageIndex = 1;
+            newData = [];
+            let tag = this.innerText;
+
+            if (tag == "全部活動") {
+                newData = data;
+                totalPage = Math.ceil(data.length / pageSize);
+                SetButton(pageIndex, totalPage);
+                Display(newData, pageIndex, pageSize)
+                return;
+            }
+
+            $.each(data, function(index, value) {
+                if (tag == value.tag) {
+                    newData.push(value);
+                }
+            });
+
+            totalPage = newData.length == 0 ? 1 : Math.ceil(newData.length / pageSize);
+            SetButton(pageIndex, totalPage);
+            Display(newData, pageIndex, pageSize)
+        });
+    });
+
+    function SetButton(pageIndex, totalPage) {
+        $("#select-page").text(pageIndex);
+        $("#last-page").text(totalPage);
+
+        if (pageIndex <= 1) {
+            $(function() {
+                $("#previous").addClass("disabled");
+            });
+        }
+
+        else {
+            $(function() {
+                $("#previous").removeClass("disabled");
+            });
+        }
+
+        if (pageIndex >= totalPage) {
+            $(function() {
+                $("#next").addClass("disabled");
+            });
+        }
+
+        else {
+            $(function() {
+                $("#next").removeClass("disabled");
+            });
+        }
+    };
+
+    function Display(data, pageIndex, pageSize) {
+        $("#content").empty();
+
+        if (data.length != 0) {
+            let tagShow;
+            for (let i = 0; i < pageSize; i++) {
+                let j = (pageIndex - 1) * 4 + i;
+
+                if (data[j] == undefined) {
+                    return;
+                }
+
+                if (data[j].tag == "已結束") {
+                    tagShow = `<div class="status-tag-end">活動已結束</div>`
+                }
+
+                else if (data[j].tag == "執行中") {
+                    tagShow = `<div class="status-tag-now">活動進行中</div>`
+                }
+
+                else if (data[j].tag == "即將開始") {
+                    tagShow = `<div class="status-tag-now">活動尚未開始</div>`
+                }
+
+                let show;
+
+                show = `<div class="box">
+							<a href="/Activity/Content/${data[j].id}">
+								<div class="imgbox">
+									<img class="picture" src="/${data[j].thumbnail}" />
+								</div>
+							</a>
+							<div id="abc" class="information d-flex justify-content-space-between">
+								<div class="time d-flex align-items-center">
+									<img src="/images/ActivityNews/clock.png" />${data[j].startDate} ~ ${data[j].endDate}
+								</div>
+								${tagShow}
+								</div>
+							</div>`
+                $("#content").append(show);
+            };
+        }
+    };
+});
+</script>

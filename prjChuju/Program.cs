@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using prjChuju.Models;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,13 +33,14 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "Default",
-    pattern: "{controller=Activity}/{action=Index}"
+    pattern: "{controller=Home}/{action=Index}"
+    );
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}"
     );
 
 app.MapRazorPages();
 
 app.Run();
-
-
-
-//builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
