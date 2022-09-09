@@ -165,8 +165,6 @@
 			}
 		});
 	}
-</script>
-<script>
 	function CreateDetail() {
 		$("#create").on("click", function() {
 			$("#detail").empty();
@@ -272,10 +270,14 @@ function Preview() {
         if (this.files && this.files[0]) {
             let reader = new FileReader();
             reader.onload = function(e) {
-                $("#preview").attr("src", e.target.result)
+                $("#preview").attr("src", e.target.result);
             }
             reader.readAsDataURL(this.files[0])
         }
+
+        else {
+            $("#preview").removeAttr("src");
+		}
     });
 }
 

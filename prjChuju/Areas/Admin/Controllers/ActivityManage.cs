@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prjChuju.Models;
@@ -8,18 +10,19 @@ namespace prjChuju.Areas.Admin.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles = "1")]
     public class ActivityManage : ControllerBase
     {
         private readonly dbChujuContext _dbChujuContext;
 
         private readonly IWebHostEnvironment _appEnvironment;
-
+       
         public ActivityManage(dbChujuContext context, IWebHostEnvironment appEnvironment)
         {
             _dbChujuContext = context;
             _appEnvironment = appEnvironment;
         }
-
+       
         public IQueryable<ActivityManageViewModel> Get()
         {
             var item = _dbChujuContext.Activities.AsNoTracking().Select(x => new ActivityManageViewModel
@@ -122,31 +125,49 @@ namespace prjChuju.Areas.Admin.Controllers
         {
             int num = 0;
 
-            var file = filterName.Files[0];
-            string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
-            var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
-            string fileName = file.FileName;
-            string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
-            string newPath = baseUrl + newFileName;
-
-            using (var stream = System.IO.File.Create(newPath))
+            if (filterName.Files.Count != 0)
             {
-                file.CopyToAsync(stream);
+                var file = filterName.Files[0];
+                string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
+                var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
+                string fileName = file.FileName;
+                string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
+                string newPath = baseUrl + newFileName;
+
+                using (var stream = System.IO.File.Create(newPath))
+                {
+                    file.CopyToAsync(stream);
+                }
+
+                var item = new Activity
+                {
+                    Title = filterName["title"],
+                    StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null),
+                    EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null),
+                    Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}",
+                    Content = filterName["content"],
+                    ModifiedDate = DateTime.Now
+                };
+
+                _dbChujuContext.Activities.Add(item);
+                num = _dbChujuContext.SaveChanges();
             }
 
-            var item = new Activity
+            else
             {
-                Title = filterName["title"],
-                StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null),
-                EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null),
-                Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}",
-                Content = filterName["content"],
-                ModifiedDate = DateTime.Now
-            };
+                var item = new Activity
+                {
+                    Title = filterName["title"],
+                    StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null),
+                    EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null),
+                    Thumbnail = $"images/ActivityPictures/OutlinePictures/",
+                    Content = filterName["content"],
+                    ModifiedDate = DateTime.Now
+                };
 
-            _dbChujuContext.Activities.Add(item);
-            num = _dbChujuContext.SaveChanges();
-
+                _dbChujuContext.Activities.Add(item);
+                num = _dbChujuContext.SaveChanges();
+            }
             return num;
         }
 

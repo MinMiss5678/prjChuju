@@ -1,1 +1,70 @@
-﻿
+﻿<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="lib/bootstrap/dist/css/bootstrap.css">
+<style>
+	#content{
+		height:300px;
+	}
+</style>
+<html>
+<body>
+	<div class="d-flex justify-content-center align-items-center" id="content">
+		<div>
+			<div class="d-flex">
+				<div id="loginDiv"></div>
+				<div class="d-flex align-items-center">登入</div>
+			</div>
+			<div class="d-flex">
+				<div id=registerDiv></div>
+				<div class="d-flex align-items-center">註冊</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		function Login(response) {
+			let id_token = response.credential;
+			$.post("/Account/Login", { token: id_token }, function(res) {
+			})
+				.then(res => {
+                    location.assign("Index");
+				})
+				.catch(error => {
+                    alert("登入失敗");
+				});
+		}
+
+		function Register(response) {
+			let id_token = response.credential;
+			$.post("/Account/Register", { token: id_token }, function(res) {
+				if (res != 0) {
+					alert("註冊成功")
+				}
+
+				else {
+					alert("註冊失敗")
+				}
+			});
+		}
+
+window.onload = function() {
+    google.accounts.id.initialize({
+        client_id: "877790294169-pnpcg04081hnbrp8ke2p5c99q105ccuc.apps.googleusercontent.com",
+        callback: Login
+    });
+    google.accounts.id.renderButton(
+        document.getElementById("loginDiv"),
+        { type: "icon" }  // customization attributes
+    );
+    google.accounts.id.initialize({
+        client_id: "877790294169-pnpcg04081hnbrp8ke2p5c99q105ccuc.apps.googleusercontent.com",
+        callback: Register
+    });
+    google.accounts.id.renderButton(
+        document.getElementById("registerDiv"),
+        { type: "icon" }  // customization attributes
+    );
+}
+	</script>
+</body>
+</html>

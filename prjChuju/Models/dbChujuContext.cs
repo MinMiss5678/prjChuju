@@ -16,6 +16,7 @@ namespace prjChuju.Models
         {
         }
 
+        public virtual DbSet<Account> Accounts { get; set; } = null!;
         public virtual DbSet<AccountInfo> AccountInfos { get; set; } = null!;
         public virtual DbSet<AccountPicture> AccountPictures { get; set; } = null!;
         public virtual DbSet<Activity> Activities { get; set; } = null!;
@@ -50,6 +51,17 @@ namespace prjChuju.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.ToTable("Account");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Email).HasColumnName("email");
+
+                entity.Property(e => e.Role).HasColumnName("role");
+            });
+
             modelBuilder.Entity<AccountInfo>(entity =>
             {
                 entity.ToTable("accountInfo");
