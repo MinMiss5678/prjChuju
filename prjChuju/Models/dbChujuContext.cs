@@ -19,6 +19,7 @@ namespace prjChuju.Models
         public virtual DbSet<Account> Accounts { get; set; } = null!;
         public virtual DbSet<AccountInfo> AccountInfos { get; set; } = null!;
         public virtual DbSet<AccountPicture> AccountPictures { get; set; } = null!;
+        public virtual DbSet<AccountRole> AccountRoles { get; set; } = null!;
         public virtual DbSet<Activity> Activities { get; set; } = null!;
         public virtual DbSet<ActivityImage> ActivityImages { get; set; } = null!;
         public virtual DbSet<ArticleClass> ArticleClasses { get; set; } = null!;
@@ -60,6 +61,12 @@ namespace prjChuju.Models
                 entity.Property(e => e.Email).HasColumnName("email");
 
                 entity.Property(e => e.Role).HasColumnName("role");
+
+                entity.HasOne(d => d.RoleNavigation)
+                    .WithMany(p => p.Accounts)
+                    .HasForeignKey(d => d.Role)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Account_AccountRole");
             });
 
             modelBuilder.Entity<AccountInfo>(entity =>
@@ -128,6 +135,15 @@ namespace prjChuju.Models
                     .HasDefaultValueSql("(getdate())");
 
                 entity.Property(e => e.Uploader).HasColumnName("uploader");
+            });
+
+            modelBuilder.Entity<AccountRole>(entity =>
+            {
+                entity.ToTable("AccountRole");
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.Role).HasColumnName("role");
             });
 
             modelBuilder.Entity<Activity>(entity =>

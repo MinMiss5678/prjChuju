@@ -8,5 +8,7 @@ namespace prjChuju.Models
         public int Id { get; set; }
         public string Email { get; set; } = null!;
         public int Role { get; set; }
+
+        public virtual AccountRole RoleNavigation { get; set; } = null!;
     }
 }
