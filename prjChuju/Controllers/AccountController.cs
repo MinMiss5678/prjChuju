@@ -4,8 +4,6 @@ using prjChuju.Models;
 using System.Security.Cryptography;
 using JWT.Algorithms;
 using JWT.Builder;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 namespace prjChuju.Controllers
