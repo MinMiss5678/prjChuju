@@ -44,6 +44,13 @@ namespace prjChuju.Controllers
             return Ok();
         }
 
+        public IActionResult Logout()
+        {
+            Response.Cookies.Delete("jwtToken");
+            Response.Redirect("/Index");
+            return View("Index");
+        }
+
         public async Task<int> Register(string token)
         {
             int num = 0;

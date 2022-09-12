@@ -1,17 +1,26 @@
 ﻿<head>
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	
 	<link id="cssStyle" rel="stylesheet" href="" />
 	<script src="~/ckeditor5-34.2.0-c7r9rpf8k3wn/build/ckeditor.js"></script>
 @*	<script src="~/ckfinder/ckfinder.js"></script>*@
 </head>
 
 <style>
-	header {
-		text-align: center;
+	.heardDiv{
+		margin-left:900px;
 	}
 
-	
+	header>h1{
+		margin-right: 800px;
+	}
+
+	#logout{
+		cursor: pointer;
+		color: #706139;
+    text-decoration: none;
+	}
 
 	li {
 		cursor: pointer;
@@ -41,8 +50,9 @@
 </style>
 
 <body>
-	<header>
+	<header class="d-flex heardDiv">
 		<h1>後台管理</h1>
+		<a class="d-flex align-items-center" id="logout" href="~/Account/Logout">登出</a>
 	</header>
 	<section class="section-one d-flex">
 		<ul class="menu">
