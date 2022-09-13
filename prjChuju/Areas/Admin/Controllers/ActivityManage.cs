@@ -77,7 +77,7 @@ namespace prjChuju.Areas.Admin.Controllers
 
                 using (var stream = System.IO.File.Create(newPath))
                 {
-                    file.CopyToAsync(stream);
+                    file.CopyTo(stream);
                 }
 
                 var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
@@ -134,7 +134,7 @@ namespace prjChuju.Areas.Admin.Controllers
 
                 using (var stream = System.IO.File.Create(newPath))
                 {
-                    file.CopyToAsync(stream);
+                    file.CopyTo(stream); 
                 }
 
                 var item = new Activity
