@@ -48,8 +48,12 @@ table {
     width: 50%;
 }
 
+.imgboxDispaly{
+    width:100px;
+}
+
 .picture {
-    width: 10%
+    width: 15%
 }
 
 img {

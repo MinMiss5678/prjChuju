@@ -14,13 +14,13 @@ namespace prjChuju.Areas.Admin.Controllers
         private readonly dbChujuContext _dbChujuContext;
 
         private readonly IWebHostEnvironment _appEnvironment;
-       
+
         public ActivityManage(dbChujuContext context, IWebHostEnvironment appEnvironment)
         {
             _dbChujuContext = context;
             _appEnvironment = appEnvironment;
         }
-       
+
         public IQueryable<ActivityManageViewModel> Get()
         {
             var item = _dbChujuContext.Activities.AsNoTracking().Select(x => new ActivityManageViewModel
@@ -134,7 +134,7 @@ namespace prjChuju.Areas.Admin.Controllers
 
                 using (var stream = System.IO.File.Create(newPath))
                 {
-                    file.CopyTo(stream); 
+                    file.CopyTo(stream);
                 }
 
                 var item = new Activity
@@ -177,6 +177,11 @@ namespace prjChuju.Areas.Admin.Controllers
             var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
             if (item != null)
             {
+                string folderPath = "wwwroot/";
+                var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
+                string filePath = item.Thumbnail;
+                string newPath = baseUrl + filePath;
+                System.IO.File.Delete(newPath);
                 _dbChujuContext.Activities.Remove(item);
                 num = _dbChujuContext.SaveChanges();
             }

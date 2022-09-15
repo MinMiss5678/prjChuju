@@ -6,25 +6,21 @@
 </head>
 
 <style>
-/*	.heardDiv{
-		margin-left:900px;
-	}
-
-	header>h1{
-		margin-right: 800px;
-	}*/
-
-	#logout{
+	#logout {
 		cursor: pointer;
 		color: #706139;
 		text-decoration: none;
-		height:25px;
-		margin-left:850px;
-		margin-right:30px;
+		height: 25px;
+		margin-left: 850px;
+		margin-right: 30px;
 	}
 
 	li {
 		cursor: pointer;
+	}
+
+	#contentDiv {
+		height: 30px;
 	}
 
 	.wrapper_header {
@@ -32,19 +28,31 @@
 		margin-bottom: 10px;
 	}
 
+	.wrapper_1 label:not(:nth-child(1)) {
+		padding-left: 20px;
+	}
+
+	.wrapper_1 {
+		height: 60px;
+		margin-right: 20px;
+	}
+
+	.imgbox {
+		width: 200px;
+	}
+
 	#editor {
 		height: 500px;
 		margin-bottom: 10px;
 	}
 
-
 	.ck.editor__editable[role='textbox'],
 	.ck.ck-editor__editable[role='textbox'],
 	/* Inline & Balloon build. */
 	.ck.editor[role='textbox'] {
-		padding:0px 224px;
+		padding: 0px 224px;
 		width: 100%;
-		font-size:21px;
+		font-size: 21px;
 		background: #fff;
 		min-height: var(--ck-sample-editor-min-height);
 	}
@@ -53,8 +61,8 @@
 <body>
 	<header class="d-flex heardDiv justify-content-end">
 		<div class="d-flex align-items-center">
-		<h1>後台管理</h1>
-		<button class="d-flex align-items-center" id="logout">登出</button>
+			<h1>後台管理</h1>
+			<button class="d-flex align-items-center" id="logout">登出</button>
 		</div>
 	</header>
 	<section class="section-one d-flex">
@@ -68,10 +76,10 @@
 
 
 <script>
-	$(function() { 
+	$(function() {
 		Logout();
 		$("#Activity").click(function() {
-            $("#cssStyle").attr("href", "/css/ActivityManage.css");
+			$("#cssStyle").attr("href", "/css/ActivityManage.css");
 
 			LoadData();
 		});
@@ -80,76 +88,76 @@
 	function LoadData() {
 		$("#detail").empty();
 		$.getJSON("@Url.Content("~/api/ActivityManage")", function(data) {
-            $("#detail").append
-                (
-                    `<header class="d-flex">
-														<input id="search-text" placeholder="輸入標題查詢">
-														<div class="d-flex" id="count"></div>
-														<a id="showActivity" href="/Activity/Index">活動顯示</a>
-														<button id="create">新增活動</button>
-												</header>
-													<div>
-														<table>
-															<thead>
-																<tr>
-																<th class="picture">預覽</th>
-																<th class="title">標題</th>
-																<th>開始日期</th>
-																<th>結束日期</th>
-																<th>修改日期</th>
-																<th></th>
-																</tr>
-																<tbody id="content"></tbody>
-															</thead>
-														</table>
-														</div>`
-                );
+			$("#detail").append
+				(
+					`<header class="d-flex">
+																<input id="search-text" placeholder="輸入標題查詢">
+																<div class="d-flex" id="count"></div>
+																<a id="showActivity" href="/Activity/Index">活動顯示</a>
+																<button id="create">新增活動</button>
+														</header>
+															<div>
+																<table>
+																	<thead>
+																		<tr>
+																		<th class="picture">預覽</th>
+																		<th class="title">標題</th>
+																		<th>開始日期</th>
+																		<th>結束日期</th>
+																		<th>修改日期</th>
+																		<th></th>
+																		</tr>
+																		<tbody id="content"></tbody>
+																	</thead>
+																</table>
+																</div>`
+				);
+			$.each(data, function(index, value) {
+				Display(value);
+			});
+			$("#count").text(`共${data.length}筆`);
+
+			$("#search-text").on("input", function() {
+				$("#content").empty();
+				let count = 0;
+				let searchText = this.value;
 				$.each(data, function(index, value) {
-					Display(value);
+					if (value.title.toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
+						count++;
+						Display(value);
+					}
 				});
-				$("#count").text(`共${data.length}筆`);
 
-				$("#search-text").bind("input propertychange", function() {
-					$("#content").empty();
-					let count = 0;
-					let searchText = this.value;
-					$.each(data, function(index, value) {
-						if (value.title.toLowerCase().indexOf(searchText.toLowerCase()) >= 0) {
-							count++;
-							Display(value);
-						}
-					});
-
-					$("#count").text(`共${count}筆`);
-				});
+				$("#count").text(`共${count}筆`);
+			});
 		})
-        .then((res) => { 
+			.then((res) => {
 				Delete();
-		})
-		.then((res) => {
+			})
+			.then((res) => {
 				Edit();
-		})
-		.then((res) => {
+			})
+			.then((res) => {
 				CreateDetail();
-        });
+			});
 	}
 
 	function Display(value) {
 		$("#content").append
 			(
 				`<tr>
-					<td>
-						<img src="/${value.thumbnail}" />
-					</td>
-					<td>${value.title}</td>
-					<td>${value.startDate}</td>
-					<td>${value.endDate}</td>
-					<td>${value.modifiedDate}</td>
-					<td>
-					<button class="edit" value=${value.id}>編輯</button>
-					<button class="delete" value=${value.id}>刪除</button>
-					</td>
-				</tr>`
+							<td>
+								<img src="/${value.thumbnail}" />
+							</td>
+							<td>${value.title}</td>
+							<td>${value.startDate}</td>
+							<td>${value.endDate}</td>
+							<td>${value.modifiedDate}</td>
+							<td>
+							<button class="edit" value=${value.id}>編輯</button>
+							<button class="delete" value=${value.id}>刪除</button>
+							</td>
+						</tr>`
 			)
 	}
 
@@ -185,157 +193,292 @@
 			$("#detail").append
 				(
 					`
-					<form id="postForm">
-					<div class="wrapper_header">
-						標題：<input name="title" />
-						開始日期：<input name="startDate" placeholder="1990-01-01" />
-						結束日期：<input name="endDate" placeholder="1990-01-01" />
-						預覽圖片: <img class="picture" id="preview" /> <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
-					</div>
-					<div class="document-editor__toolbar">
-					</div>
-					<div id="editor">
-					</div>
-					<button id="submit">送出</button>
-					</form>
-					`
+							<form id="postForm">
+							<div class="wrapper_header d-flex">
+							<div class="wrapper_1 d-flex">
+									<label>標題：</label>
+										<div>
+											<input name="title" id="title" />
+											<div id="titleDiv"></div>
+										</div>
+										<label>開始日期：</label>
+										<div>
+											<input name="startDate" id="startDate" placeholder="1990-01-01" />
+											<div id="startDateDiv"></div>
+										</div>
+										<label>結束日期：</label>
+									<div>
+										<input name="endDate" id="endDate" placeholder="1990-01-01" />
+										<div id="endDateDiv"></div>
+									</div>
+							</div>
+							<div class="wrapper_2 d-flex">
+									<label>預覽圖片：</label>
+									<div class="imgbox">
+										<img id="preview" />
+									</div>
+									<div>
+										<input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
+										<div id="imageFileDiv"></div>
+									</div>
+							</div>
+							</div>
+							<div class="document-editor__toolbar">
+							</div>
+							<div id="editor">
+							</div>
+							<div id="contentDiv">
+							</div>
+							<div>
+							<button id="submit">送出</button>
+							</div>
+							</form>
+							`
 				);
-            CkEditor();
-            Preview();
 
-            $("#submit").on("click", function(e) {
-                e.preventDefault();
-                
-                let data = new FormData($("#postForm")[0]);
-                let content = editor.getData();
-                data.append("content", content);
-               
-                $.ajax({
-					url: "/api/ActivityManage",
-					method: "Post",
-					data: data,
-					processData: false,
-					contentType: false,
-                    success: function(data) {
-                     	if (data != 0) {
-							alert("新增成功");
+			CkEditor();
+			Preview();
+			Authorization();
+
+			$("#submit").on("click", function(e) {
+				e.preventDefault();
+
+				let data = new FormData($("#postForm")[0]);
+				let pass = submitAuthorization(data);
+				if (pass) {
+					$.ajax({
+						url: "/api/ActivityManage",
+						method: "Post",
+						data: data,
+						processData: false,
+						contentType: false,
+						success: function(data) {
+							if (data != 0) {
+								alert("新增成功");
+							}
+
+							else {
+								alert("新增失敗");
+							}
+
+							LoadData();
 						}
-
-						else {
-							alert("新增失敗");
-						}
-
-						LoadData();
-					}
-                });
-            });
+					});
+				}
+			});
 		});
 	}
 
-function Edit() {
-    $(".edit").on("click", function() {
-        let apiUrl = `/api/ActivityManage/${this.value}`;
-        $.getJSON(apiUrl, function(data) {
-			$("#detail").empty();
-			$("#detail").append
-				(
-					`
-					<form id="postForm">
-					<div class="wrapper_header">
-						標題：<input name="title" value="${data.title}" />
-						開始日期：<input name="startDate" placeholder="1990-01-01" value="${data.startDate}" />
-						結束日期：<input name="endDate" placeholder="1990-01-01" value="${data.endDate}" />
-						預覽圖片:<img class="picture" id="preview" src="/${data.thumbnail}" /> <input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
-					</div>
-					<div class="document-editor__toolbar">
-					</div>
-					<div id="editor">
-					${data.content}
-					</div>
-					<button id="submit">送出</button>
-					</form>
-					`
-				);
-            CkEditor();
-            Preview();
-            Update(data.id);
+	function Edit() {
+		$(".edit").on("click", function() {
+			let apiUrl = `/api/ActivityManage/${this.value}`;
+			$.getJSON(apiUrl, function(data) {
+				$("#detail").empty();
+				$("#detail").append
+					(
+						`
+						<form id="postForm">
+							<div class="wrapper_header d-flex">
+							<div class="wrapper_1 d-flex">
+									<label>標題：</label>
+										<div>
+											<input name="title" id="title" value="${data.title}" />
+											<div id="titleDiv"></div>
+										</div>
+										<label>開始日期：</label>
+										<div>
+											<input name="startDate" id="startDate" placeholder="1990-01-01" value="${data.startDate}" />
+											<div id="startDateDiv"></div>
+										</div>
+										<label>結束日期：</label>
+									<div>
+										<input name="endDate" id="endDate" placeholder="1990-01-01" value="${data.startDate}" />
+										<div id="endDateDiv"></div>
+									</div>
+							</div>
+							<div class="wrapper_2 d-flex">
+									<label>預覽圖片：</label>
+									<div class="imgbox">
+										<img id="preview" src="/${data.thumbnail}">
+									</div>
+									<div>
+										<input type="file" name="imageFile" id="imageFile" accept="image/jpeg,image/png" />
+										<div id="imageFileDiv"></div>
+									</div>
+							</div>
+							</div>
+							<div class="document-editor__toolbar">
+							</div>
+							<div id="editor">
+							${data.content}
+							</div>
+							<div id="contentDiv">
+							</div>
+							<div>
+							<button id="submit">送出</button>
+							</div>
+							</form>
+							`
+					);
+				CkEditor();
+				Preview();
+				Authorization();
+				Update(data.id);
 			});
-    });
-}
+		});
+	}
 
-function CkEditor() {
+	function CkEditor() {
 		DecoupledDocumentEditor
-				.create(document.querySelector('#editor'), {
-					simpleUpload: {
-						uploadUrl: "/api/ActivityManage/ImageUpload"
-					}
-				})
-				.then(editor => {
-					window.editor = editor;
-					document.querySelector('.document-editor__toolbar').appendChild(editor.ui.view.toolbar.element);
+			.create(document.querySelector('#editor'), {
+				simpleUpload: {
+					uploadUrl: "/api/ActivityManage/ImageUpload"
+				}
+			})
+			.then(editor => {
+				window.editor = editor;
+				document.querySelector('.document-editor__toolbar').appendChild(editor.ui.view.toolbar.element);
+			})
+			.catch(error => {
+				console.error(error);
+			});
+	}
+
+	function Preview() {
+		$("#imageFile").change(function() {
+			if (this.files && this.files[0]) {
+				$("#imageFileDiv").text("");
+				let reader = new FileReader();
+				reader.onload = function(e) {
+					$("#preview").attr("src", e.target.result);
+				}
+				reader.readAsDataURL(this.files[0])
+			}
+
+			else {
+				$("#preview").removeAttr("src");
+				$("#imageFileDiv").text("未上傳圖片").css("color", "red");
+			}
+		});
+	}
+
+	function Update(id) {
+		$("#submit").on("click", function(e) {
+			e.preventDefault();
+
+			let data = new FormData($("#postForm")[0]);
+            let pass = submitAuthorization(data);
+			
+            if (pass) {
+                $.ajax({
+                    url: `/api/ActivityManage/${id}`,
+                    method: "Put",
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    success: function(data) {
+                        if (data != 0) {
+                            alert("修改成功");
+                        }
+
+                        else {
+                            alert("修改失敗");
+                        }
+
+                        LoadData();
+                    }
+                });
+            }
+		});
+	}
+
+	function Authorization() {
+		$("#title").blur(function() {
+			if (this.value == "") {
+				$("#titleDiv").text("欄位空白").css("color", "red");
+			}
+
+			else {
+				$("#titleDiv").text("")
+			}
+		});
+
+		$("#editor").blur(function() {
+			if ((editor.getData()) == "") {
+				$("#contentDiv").text("欄位空白").css("color", "red");
+			}
+
+			else {
+				$("#contentDiv").text("")
+			}
+		});
+
+		$("#startDate").on("input", function() {
+			let dateAuth = /^\d{4}\-\d{2}\-\d{2}$/;
+			let startDate = this.value;
+
+			if (!dateAuth.test(startDate)) {
+				$("#startDateDiv").text("格式錯誤").css("color", "red");
+			}
+
+			else if (!Date.parse(startDate)) {
+				$("#startDateDiv").text("日期錯誤").css("color", "red");
+			}
+
+			else {
+				$("#startDateDiv").text("");
+			}
+		});
+
+		$("#endDate").on("input", function() {
+			let dateAuth = /^\d{4}\-\d{2}\-\d{2}$/;
+			let endDate = this.value;
+
+			if (!dateAuth.test(endDate)) {
+				$("#endDateDiv").text("格式錯誤").css("color", "red");
+			}
+
+			else if (!Date.parse(endDate)) {
+				$("#endDateDiv").text("日期錯誤").css("color", "red");
+			}
+
+			else {
+				$("#endDateDiv").text("");
+			}
+		})
+	}
+
+	function submitAuthorization(data) {
+		let dateAuth = /^\d{4}\-\d{2}\-\d{2}$/;
+		let title = data.get("title");
+		let startDate = data.get("startDate");
+		let endDate = data.get("endDate");
+		let content = editor.getData();
+        let image = $("#preview").attr("src");
+        console.log(image);
+       
+		if (title == "" || content == "" || !dateAuth.test(startDate) || !Date.parse(startDate) || !dateAuth.test(endDate) || !Date.parse(endDate) || image == null) {
+			alert("資料錯誤");
+			return false;
+		}
+
+		data.append("content", content);
+
+		return true;
+	}
+
+	function Logout() {
+		$("#logout").click(function(e) {
+			e.preventDefault();
+
+			$.post("/Account/Logout", function(res) {
+			})
+				.then(res => {
+					location.assign("Index");
 				})
 				.catch(error => {
-					console.error(error);
+					alert("登出失敗");
 				});
-}
-
-function Preview() {
-    $("#imageFile").change(function() {
-        if (this.files && this.files[0]) {
-            let reader = new FileReader();
-            reader.onload = function(e) {
-                $("#preview").attr("src", e.target.result);
-            }
-            reader.readAsDataURL(this.files[0])
-        }
-
-        else {
-            $("#preview").removeAttr("src");
-		}
-    });
-}
-
-function Update(id) {
-		 $("#submit").on("click", function(e) {
-                e.preventDefault();
-                
-                let data = new FormData($("#postForm")[0]);
-                let content = editor.getData();
-                data.append("content", content);
-
-                $.ajax({
-					url: `/api/ActivityManage/${id}`,
-					method: "Put",
-					data: data,
-					processData: false,
-					contentType: false,
-                    success: function(data) {
-                     	if (data != 0) {
-							alert("修改成功");
-						}
-
-						else {
-							alert("修改失敗");
-						}
-
-						LoadData();
-					}
-                });
-            });
-}
-
-function Logout(){
-    $("#logout").click(function(e) {
-		e.preventDefault();
-
-        $.post("/Account/Logout", function(res) {
-        })
-		.then(res => {
-			location.assign("Index");
-        })
-        .catch(error => {
-			alert("登出失敗");
-        });
-    });
-}
+		});
+	}
 </script>
