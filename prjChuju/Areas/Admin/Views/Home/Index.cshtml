@@ -347,6 +347,10 @@
 	function Preview() {
 		$("#imageFile").change(function() {
 			if (this.files && this.files[0]) {
+                if (this.files[0].size > 4194304) {
+                    alert("圖片大小不得超過4MB");
+				}
+
 				$("#imageFileDiv").text("");
 				let reader = new FileReader();
 				reader.onload = function(e) {
@@ -455,7 +459,6 @@
 		let endDate = data.get("endDate");
 		let content = editor.getData();
         let image = $("#preview").attr("src");
-        console.log(image);
        
 		if (title == "" || content == "" || !dateAuth.test(startDate) || !Date.parse(startDate) || !dateAuth.test(endDate) || !Date.parse(endDate) || image == null) {
 			alert("資料錯誤");

@@ -62,39 +62,65 @@ namespace prjChuju.Areas.Admin.Controllers
         }
 
         [HttpPut("{id}")]
-        public int Put(IFormCollection filterName, int id)
+        public async Task<int> Put(IFormCollection form, int id)
         {
             int num = 0;
 
-            if (filterName.Files.Count != 0)
+            string[] keyArray = { "title", "startDate", "endDate", "content" };
+
+            if (form == null || form.Keys.Count > 5)
             {
-                var file = filterName.Files[0];
-                string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
-                var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
-                string fileName = file.FileName;
-                string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
-                string newPath = baseUrl + newFileName;
+                return num;
+            }
 
-                using (var stream = System.IO.File.Create(newPath))
-                {
-                    file.CopyTo(stream);
-                }
-
-                var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
-
-                if (item == null)
+            foreach (var key in keyArray)
+            {
+                if (!form.ContainsKey(key))
                 {
                     return num;
+                };
+            }
+
+            if (form.Files.Count == 1)
+            {
+                var file = form.Files[0];
+                string ext = System.IO.Path.GetExtension(file.FileName);
+                var size = file.Length / 1024 / 1024;
+
+                if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" && size <= 4)
+                {
+                    var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
+
+                    if (item == null)
+                    {
+                        return num;
+                    }
+
+                    string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
+                    var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
+                    string fileName = file.FileName;
+                    string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
+                    string newPath = baseUrl + newFileName;
+                    var rootUrl = "wwwroot/";
+                    var baseRootUrl = Path.Combine(_appEnvironment.ContentRootPath, rootUrl);
+                    string oldPath = baseRootUrl + item.Thumbnail;
+
+                    System.IO.File.Delete(oldPath);
+
+                    using (var stream = System.IO.File.Create(newPath))
+                    {
+                        await file.CopyToAsync(stream);
+                    }
+
+                    item.Title = form["title"];
+                    item.StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null);
+                    item.EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null);
+                    item.Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}";
+                    item.Content = form["content"];
+                    item.ModifiedDate = DateTime.Now;
+
+                    num = _dbChujuContext.SaveChanges();
                 }
-
-                item.Title = filterName["title"];
-                item.StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null);
-                item.EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null);
-                item.Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}";
-                item.Content = filterName["content"];
-                item.ModifiedDate = DateTime.Now;
-
-                num = _dbChujuContext.SaveChanges();
             }
 
             else
@@ -106,10 +132,10 @@ namespace prjChuju.Areas.Admin.Controllers
                     return num;
                 }
 
-                item.Title = filterName["title"];
-                item.StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null);
-                item.EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null);
-                item.Content = filterName["content"];
+                item.Title = form["title"];
+                item.StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null);
+                item.EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null);
+                item.Content = form["content"];
                 item.ModifiedDate = DateTime.Now;
 
                 num = _dbChujuContext.SaveChanges();
@@ -119,13 +145,31 @@ namespace prjChuju.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public int Post(IFormCollection filterName)
+        public async Task<int> Post(IFormCollection form)
         {
             int num = 0;
 
-            if (filterName.Files.Count != 0)
+            string[] keyArray = { "title", "startDate", "endDate", "content" };
+
+            if (form == null || form.Files.Count != 1 || form.Keys.Count != 4)
             {
-                var file = filterName.Files[0];
+                return num;
+            }
+
+            foreach (var key in keyArray)
+            {
+                if (!form.ContainsKey(key))
+                {
+                    return num;
+                };
+            }
+
+            var file = form.Files[0];
+            string ext = System.IO.Path.GetExtension(file.FileName);
+            var size = file.Length / 1024 / 1024;
+
+            if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" && size <= 4)
+            {
                 string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
                 var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
                 string fileName = file.FileName;
@@ -134,16 +178,16 @@ namespace prjChuju.Areas.Admin.Controllers
 
                 using (var stream = System.IO.File.Create(newPath))
                 {
-                    file.CopyTo(stream);
+                    await file.CopyToAsync(stream);
                 }
 
                 var item = new Activity
                 {
-                    Title = filterName["title"],
-                    StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null),
-                    EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null),
+                    Title = form["title"],
+                    StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null),
+                    EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null),
                     Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}",
-                    Content = filterName["content"],
+                    Content = form["content"],
                     ModifiedDate = DateTime.Now
                 };
 
@@ -151,21 +195,6 @@ namespace prjChuju.Areas.Admin.Controllers
                 num = _dbChujuContext.SaveChanges();
             }
 
-            else
-            {
-                var item = new Activity
-                {
-                    Title = filterName["title"],
-                    StartDate = DateTime.ParseExact(filterName["startDate"], "yyyy-MM-dd", null),
-                    EndDate = DateTime.ParseExact(filterName["endDate"], "yyyy-MM-dd", null),
-                    Thumbnail = $"images/ActivityPictures/OutlinePictures/",
-                    Content = filterName["content"],
-                    ModifiedDate = DateTime.Now
-                };
-
-                _dbChujuContext.Activities.Add(item);
-                num = _dbChujuContext.SaveChanges();
-            }
             return num;
         }
 

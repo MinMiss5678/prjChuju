@@ -3,6 +3,7 @@ using prjChuju.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using Westwind.AspNetCore.LiveReload;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +45,8 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddLiveReload();
+builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
 
 // Add services to the container.
 builder.Services.AddRazorPages();
@@ -66,10 +68,13 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseLiveReload();
 
+app.UseStaticFiles();
 app.MapControllerRoute(
     name: "Default",
     pattern: "{controller=Home}/{action=Index}"
+    
     );
 
 app.MapControllerRoute(
