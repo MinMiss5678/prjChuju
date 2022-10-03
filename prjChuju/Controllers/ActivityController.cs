@@ -19,13 +19,13 @@ namespace prjChuju.Controllers
         {
             List<ActivityViewModel> vmodelList = new List<ActivityViewModel>();
             int pageSize = 4;
-            var item = _dbChujuContext.Activities.AsNoTracking().OrderByDescending(x => x.EndDate).Take(pageSize)
+            var item = _dbChujuContext.Activities.AsNoTracking().Include(x => x.Thumbnail).OrderByDescending(x => x.EndDate).Take(pageSize).ToList()
                 .Select(x => new ActivityViewModel
                 {
                     Id = x.Id,
                     StartDate = x.StartDate.ToString("yyyy-MM-dd"),
                     EndDate = x.EndDate.ToString("yyyy-MM-dd"),
-                    Thumbnail = x.Thumbnail,
+                    Thumbnail = x.Thumbnail.Path,
                     Tag = SetTag(x),
                 });
 
@@ -61,7 +61,7 @@ namespace prjChuju.Controllers
                     Id = x.Id,
                     StartDate = x.StartDate.ToString("yyyy-MM-dd"),
                     EndDate = x.EndDate.ToString("yyyy-MM-dd"),
-                    Thumbnail = x.Thumbnail,
+                    Thumbnail = x.Thumbnail.Path,
                     Tag = SetTag(x),
                 });
 
@@ -105,45 +105,45 @@ namespace prjChuju.Controllers
                 Id = x.Id,
                 StartDate = x.StartDate.ToString("yyyy-MM-dd"),
                 EndDate = x.EndDate.ToString("yyyy-MM-dd"),
-                Thumbnail = x.Thumbnail,
+                Thumbnail = x.Thumbnail.Path,
             });
 
             return Json(union);
         }
 
-        //public class PaginatedList<T> : List<T>
-        //{
-        //    public int _pageIndex { get; private set; }
+        public class PaginatedList<T> : List<T>
+        {
+            public int _pageIndex { get; private set; }
 
-        //    public int _totalPage { get; private set; }
+            public int _totalPage { get; private set; }
 
-        //    public int _pageSize { get; private set; }
+            public int _pageSize { get; private set; }
 
-        //    public PaginatedList(List<T> items, int count, int pageIndex, int pageSize)
-        //    {
-        //        _pageIndex = pageIndex;
-        //        _pageSize = pageSize;
-        //        _totalPage = (int)Math.Ceiling(count / (double)pageSize);
+            public PaginatedList(List<T> items, int count, int pageIndex, int pageSize)
+            {
+                _pageIndex = pageIndex;
+                _pageSize = pageSize;
+                _totalPage = (int)Math.Ceiling(count / (double)pageSize);
 
-        //        this.AddRange(items);
-        //    }
+                this.AddRange(items);
+            }
 
-        //    public PaginatedList(List<T> items)
-        //    {
-        //        this.AddRange(items);
-        //    }
+            public PaginatedList(List<T> items)
+            {
+                this.AddRange(items);
+            }
 
-        //    public bool _HasPreviousPage => _pageIndex > 1;
+            public bool _HasPreviousPage => _pageIndex > 1;
 
-        //    public bool _HasNextPage => _pageIndex < _totalPage;
+            public bool _HasNextPage => _pageIndex < _totalPage;
 
-        //    public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageIndex, int pageSize)
-        //    {
-        //        var count = await source.CountAsync();
-        //        var item = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
-        //        return new PaginatedList<T>(item, count, pageIndex, pageSize);
-        //    }
+            public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageIndex, int pageSize)
+            {
+                var count = await source.CountAsync();
+                var item = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
+                return new PaginatedList<T>(item, count, pageIndex, pageSize);
+            }
 
-        //}
+        }
     }
 }

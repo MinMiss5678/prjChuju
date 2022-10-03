@@ -5,10 +5,14 @@ namespace prjChuju.Models
 {
     public partial class ActivityImage
     {
-        public int Id { get; set; }
-        public string Image { get; set; } = null!;
-        public int ActivityId { get; set; }
+        public ActivityImage()
+        {
+            Activities = new HashSet<Activity>();
+        }
 
-        public virtual Activity Activity { get; set; } = null!;
+        public int Id { get; set; }
+        public string Path { get; set; } = null!;
+
+        public virtual ICollection<Activity> Activities { get; set; }
     }
 }

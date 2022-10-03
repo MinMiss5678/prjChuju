@@ -164,22 +164,22 @@ namespace prjChuju.Models
                     .HasColumnType("date")
                     .HasColumnName("startDate");
 
-                entity.Property(e => e.Thumbnail).HasColumnName("thumbnail");
+                entity.Property(e => e.ThumbnailId).HasColumnName("thumbnailId");
 
                 entity.Property(e => e.Title).HasColumnName("title");
+
+                entity.HasOne(d => d.Thumbnail)
+                    .WithMany(p => p.Activities)
+                    .HasForeignKey(d => d.ThumbnailId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Activity_ActivityImage");
             });
 
             modelBuilder.Entity<ActivityImage>(entity =>
             {
                 entity.ToTable("ActivityImage");
 
-                entity.Property(e => e.Image).HasColumnName("image");
-
-                entity.HasOne(d => d.Activity)
-                    .WithMany(p => p.ActivityImages)
-                    .HasForeignKey(d => d.ActivityId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ActivityImage_ActivityOutline");
+                entity.Property(e => e.Path).HasColumnName("path");
             });
 
             modelBuilder.Entity<ArticleClass>(entity =>

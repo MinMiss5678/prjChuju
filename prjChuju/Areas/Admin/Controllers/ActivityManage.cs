@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using prjChuju.Models;
 using prjChuju.ViewModels;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace prjChuju.Areas.Admin.Controllers
 {
@@ -23,12 +25,12 @@ namespace prjChuju.Areas.Admin.Controllers
 
         public IQueryable<ActivityManageViewModel> Get()
         {
-            var item = _dbChujuContext.Activities.AsNoTracking().Select(x => new ActivityManageViewModel
+            var item = _dbChujuContext.Activities.AsNoTracking().Include(x => x.Thumbnail).OrderByDescending(x => x.Id).Select(x => new ActivityManageViewModel
             {
                 Id = x.Id,
                 StartDate = x.StartDate.ToString("yyyy-MM-dd"),
                 EndDate = x.EndDate.ToString("yyyy-MM-dd"),
-                Thumbnail = x.Thumbnail,
+                Thumbnail = x.Thumbnail.Path,
                 Title = x.Title,
                 ModifiedDate = x.ModifiedDate.ToString("yyyy-MM-dd")
             });
@@ -39,7 +41,7 @@ namespace prjChuju.Areas.Admin.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            var item = _dbChujuContext.Activities.Find(id);
+            var item = _dbChujuContext.Activities.AsNoTracking().Include(x => x.Thumbnail).FirstOrDefault(x => x.Id == id);
 
             if (item == null)
             {
@@ -52,7 +54,7 @@ namespace prjChuju.Areas.Admin.Controllers
                 Title = item.Title,
                 StartDate = item.StartDate.ToString("yyyy-MM-dd"),
                 EndDate = item.EndDate.ToString("yyyy-MM-dd"),
-                Thumbnail = item.Thumbnail,
+                Thumbnail = item.Thumbnail.Path,
                 Content = item.Content,
                 ModifiedDate = item.ModifiedDate.ToString("yyyy-MM-dd")
             };
@@ -89,37 +91,90 @@ namespace prjChuju.Areas.Admin.Controllers
 
                 if (ext == ".jpg" || ext == ".jpeg" || ext == ".png" && size <= 4)
                 {
-                    var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
+                    var item = _dbChujuContext.Activities.Include(x => x.Thumbnail).FirstOrDefault(x => x.Id == id);
 
                     if (item == null)
                     {
                         return num;
                     }
 
+                    var oldThumbnailId = item.ThumbnailId;
+                    var oldThumbnailPath = item.Thumbnail.Path;
+
                     string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
                     var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
-                    string fileName = file.FileName;
-                    string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
-                    string newPath = baseUrl + newFileName;
-                    var rootUrl = "wwwroot/";
-                    var baseRootUrl = Path.Combine(_appEnvironment.ContentRootPath, rootUrl);
-                    string oldPath = baseRootUrl + item.Thumbnail;
+                    string base64;
 
-                    System.IO.File.Delete(oldPath);
+                    using (var ms = new MemoryStream())
+                    {
+                        await file.CopyToAsync(ms);
+                        var fileBytes = ms.ToArray();
+                        base64 = Convert.ToBase64String(fileBytes);
+                    }
+
+                    var hash = ConvertStringSHA256(base64);
+                    var folder = CreatFolder1(baseUrl, hash);
+                    var newFileName = hash + ext;
+                    var newPath = Path.Combine(baseUrl, folder, newFileName);
+                    var dbPath = $"images/ActivityPictures/OutlinePictures/{folder}/{newFileName}";
 
                     using (var stream = System.IO.File.Create(newPath))
                     {
                         await file.CopyToAsync(stream);
                     }
 
-                    item.Title = form["title"];
-                    item.StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null);
-                    item.EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null);
-                    item.Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}";
-                    item.Content = form["content"];
-                    item.ModifiedDate = DateTime.Now;
+                    var newImagePath = _dbChujuContext.ActivityImages.FirstOrDefault(x => x.Path == dbPath);
 
-                    num = _dbChujuContext.SaveChanges();
+                    if (newImagePath == null)
+                    {
+                        var item2 = new ActivityImage
+                        {
+                            Path = dbPath
+                        };
+
+                        _dbChujuContext.ActivityImages.Add(item2);
+                        _dbChujuContext.SaveChanges();
+
+                        item.Title = form["title"];
+                        item.StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null);
+                        item.EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null);
+                        item.ThumbnailId = item2.Id;
+                        item.Content = form["content"];
+                        item.ModifiedDate = DateTime.Now;
+
+                        num = _dbChujuContext.SaveChanges();
+                    }
+
+                    else
+                    {
+                        item.Title = form["title"];
+                        item.StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null);
+                        item.EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null);
+                        item.ThumbnailId = newImagePath.Id;
+                        item.Content = form["content"];
+                        item.ModifiedDate = DateTime.Now;
+
+                        num = _dbChujuContext.SaveChanges();
+                    }
+
+                    var oldOtherThumbnail = _dbChujuContext.Activities.FirstOrDefault(x => x.ThumbnailId == oldThumbnailId);
+
+                    if (oldOtherThumbnail == null)
+                    {
+                        var rootUrl = "wwwroot/";
+                        var baseRootUrl = Path.Combine(_appEnvironment.ContentRootPath, rootUrl);
+                        string oldPath = baseRootUrl + oldThumbnailPath;
+
+                        System.IO.File.Delete(oldPath);
+
+                        var oldThumbnail = _dbChujuContext.ActivityImages.FirstOrDefault(x => x.Id == oldThumbnailId);
+
+                        if (oldThumbnail != null)
+                        {
+                            _dbChujuContext.ActivityImages.Remove(oldThumbnail);
+                            _dbChujuContext.SaveChanges();
+                        }
+                    }
                 }
             }
 
@@ -172,47 +227,140 @@ namespace prjChuju.Areas.Admin.Controllers
             {
                 string folderPath = "wwwroot/images/ActivityPictures/OutlinePictures/";
                 var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
-                string fileName = file.FileName;
-                string newFileName = Guid.NewGuid().ToString() + Path.GetExtension(fileName);
-                string newPath = baseUrl + newFileName;
+                string base64;
 
+                using (var ms = new MemoryStream())
+                {
+                    await file.CopyToAsync(ms);
+                    var fileBytes = ms.ToArray();
+                    base64 = Convert.ToBase64String(fileBytes);
+                }
+
+                var hash = ConvertStringSHA256(base64);
+                var folder = CreatFolder1(baseUrl, hash);
+                var newFileName = hash + ext;
+                var newPath = Path.Combine(baseUrl, folder, newFileName);
                 using (var stream = System.IO.File.Create(newPath))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                var item = new Activity
-                {
-                    Title = form["title"],
-                    StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null),
-                    EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null),
-                    Thumbnail = $"images/ActivityPictures/OutlinePictures/{newFileName}",
-                    Content = form["content"],
-                    ModifiedDate = DateTime.Now
-                };
+                var dbPath = $"images/ActivityPictures/OutlinePictures/{folder}/{newFileName}";
 
-                _dbChujuContext.Activities.Add(item);
-                num = _dbChujuContext.SaveChanges();
+                var dbImagePath = _dbChujuContext.ActivityImages.FirstOrDefault(x => x.Path == dbPath);
+
+                if (dbImagePath == null)
+                {
+                    var item = new ActivityImage
+                    {
+                        Path = dbPath
+                    };
+
+                    _dbChujuContext.ActivityImages.Add(item);
+                    _dbChujuContext.SaveChanges();
+
+                    var item2 = new Activity
+                    {
+                        Title = form["title"],
+                        StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null),
+                        EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null),
+                        ThumbnailId = item.Id,
+                        Content = form["content"],
+                        ModifiedDate = DateTime.Now
+                    };
+
+                    _dbChujuContext.Activities.Add(item2);
+                    num = _dbChujuContext.SaveChanges();
+                }
+
+                else
+                {
+                    var item2 = new Activity
+                    {
+                        Title = form["title"],
+                        StartDate = DateTime.ParseExact(form["startDate"], "yyyy-MM-dd", null),
+                        EndDate = DateTime.ParseExact(form["endDate"], "yyyy-MM-dd", null),
+                        ThumbnailId = dbImagePath.Id,
+                        Content = form["content"],
+                        ModifiedDate = DateTime.Now
+                    };
+
+                    _dbChujuContext.Activities.Add(item2);
+                    num = _dbChujuContext.SaveChanges();
+                }
             }
 
             return num;
         }
 
+        private DirectoryInfo CreatFolder(string root, string hash)
+        {
+            var header = hash[..2];
+            var rootDir = Path.Combine(root, header);
+            if (!Directory.Exists(rootDir))
+            {
+                Directory.CreateDirectory(rootDir);
+            }
+            var ser = hash[2..4];
+
+            var path = Path.Combine(rootDir, ser);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            return new DirectoryInfo(path);
+        }
+
+        private string CreatFolder1(string root, string hash)
+        {
+            var header = hash[..2];
+            var rootDir = Path.Combine(root, header);
+            if (!Directory.Exists(rootDir))
+            {
+                Directory.CreateDirectory(rootDir);
+            }
+            var ser = hash[2..4];
+
+            var path = Path.Combine(rootDir, ser);
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            return $"{header}/{ser}";
+        }
+
+        private string ConvertStringSHA256(string strword)
+        {
+            SHA256 sha256 = SHA256.Create();
+            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(strword);
+            byte[] hash = sha256.ComputeHash(inputBytes);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hash.Length; i++)
+            {
+                sb.Append(hash[i].ToString("x2"));
+            }
+            return sb.ToString();
+        }
 
         [HttpDelete("{id}")]
         public int Delete(int id)
         {
             int num = 0;
-            var item = _dbChujuContext.Activities.FirstOrDefault(x => x.Id == id);
+            var item = _dbChujuContext.Activities.Include(x => x.Thumbnail).FirstOrDefault(x => x.Id == id);
             if (item != null)
             {
                 string folderPath = "wwwroot/";
                 var baseUrl = Path.Combine(_appEnvironment.ContentRootPath, folderPath);
-                string filePath = item.Thumbnail;
+                string filePath = item.Thumbnail.Path;
                 string newPath = baseUrl + filePath;
-                System.IO.File.Delete(newPath);
+
                 _dbChujuContext.Activities.Remove(item);
                 num = _dbChujuContext.SaveChanges();
+                var item2 = _dbChujuContext.Activities.FirstOrDefault(x => x.ThumbnailId == item.ThumbnailId);
+                if (item2 == null)
+                {
+                    System.IO.File.Delete(newPath);
+                }
             }
 
             return num;
